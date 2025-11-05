@@ -55,7 +55,7 @@ def preprocess_data(data, target_column):
         X = pd.concat([X, X_encoded], axis=1)
         print(f"After encoding: {X.shape}")
     else:
-        print("ℹNo categorical columns found. Skipping encoding.")
+        print("No categorical columns found. Skipping encoding.")
 
     # Scale features
     scaler = StandardScaler()

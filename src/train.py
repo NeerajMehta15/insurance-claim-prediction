@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, classification_report
 
 def train_model():
     data = load_data()
-    X, y = preprocess_data(data, TARGET_COL)  # <-- FIX HERE
+    X, y = preprocess_data(data, TARGET_COL)
     X_train, X_test, y_train, y_test = split_data(X, y)
 
     model = xgb.XGBClassifier(
