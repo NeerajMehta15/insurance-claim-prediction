@@ -1,0 +1,25 @@
+# Core
+pandas
+numpy
+scikit-learn
+xgboost
+joblib
+
+# API
+fastapi
+uvicorn
+
+# Utilities
+python-dotenv
+requests
+
+# Testing
+pytest
+
+# CI/CD & Logging
+flake8
+mlflow
+
+# Visualization 
+matplotlib
+seaborn

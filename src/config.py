@@ -1,7 +1,7 @@
 import os
 
 #Base directory of the project
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 #Data paths
 RAW_DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "insurance_claims.csv")

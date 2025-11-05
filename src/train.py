@@ -1,13 +1,13 @@
+from data_preprocessing import load_data, preprocess_data, split_data
+from config import TARGET_COL, MODEL_PATH
 import xgboost as xgb
 import joblib
 from sklearn.metrics import accuracy_score, classification_report
-from data_preprocessing import load_data, preprocess_data, split_data
-from config import MODEL_PATH
 
 def train_model():
-    df = load_data()
-    df = preprocess_data(df)
-    X_train, X_test, y_train, y_test = split_data(df)
+    data = load_data()
+    X, y = preprocess_data(data, TARGET_COL)  # <-- FIX HERE
+    X_train, X_test, y_train, y_test = split_data(X, y)
 
     model = xgb.XGBClassifier(
         n_estimators=200,
@@ -22,11 +22,11 @@ def train_model():
     preds = model.predict(X_test)
 
     acc = accuracy_score(y_test, preds)
-    print(f"Model Accuracy: {acc:.4f}")
+    print(f"✅ Model Accuracy: {acc:.4f}")
     print(classification_report(y_test, preds))
 
     joblib.dump(model, MODEL_PATH)
-    print(f"Model saved at: {MODEL_PATH}")
+    print(f"💾 Model saved at: {MODEL_PATH}")
 
 if __name__ == "__main__":
     train_model()
