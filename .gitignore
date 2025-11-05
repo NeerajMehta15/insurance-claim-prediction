@@ -1,0 +1,35 @@
+# Virtual environment
+venv_5/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Data
+data/raw/
+data/processed/
+*.csv
+
+# Models
+models/
+*.pkl
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# MLflow artifacts
+mlruns/
+mlflow/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar
