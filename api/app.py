@@ -3,6 +3,21 @@ from pydantic import BaseModel
 import joblib
 import pandas as pd
 import os
+import sys
+from src.data_preprocessing import preprocess_for_inference 
+
+import sys, os
+
+# Add both project root and src folder to sys.path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+SRC_PATH = os.path.join(PROJECT_ROOT, "src")
+for path in [PROJECT_ROOT, SRC_PATH]:
+    if path not in sys.path:
+        sys.path.append(path)
+
+
+# Add src folder to path
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 # Paths
 MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "xgb_model.pkl")
@@ -17,32 +32,41 @@ app = FastAPI(
 # Load model at startup
 try:
     model = joblib.load(MODEL_PATH)
-    print(f"Model loaded successfully from {MODEL_PATH}")
+    print(f"✅ Model loaded successfully from {MODEL_PATH}")
 except Exception as e:
     model = None
     print(f"Error loading model: {e}")
 
 
-# Define input data schema (adjust fields to match your dataset)
+# Define input data schema (full dataset features)
+from pydantic import BaseModel, Field
+
 class ClaimData(BaseModel):
     months_as_customer: float
     age: float
     policy_number: float
+    policy_bind_date: str
     policy_state: str
     policy_csl: str
+    policy_deductable: float
+    policy_annual_premium: float
+    umbrella_limit: float
+    insured_zip: float
     insured_sex: str
     insured_education_level: str
     insured_occupation: str
     insured_hobbies: str
     insured_relationship: str
-    capital_gains: float
-    capital_loss: float
+    capital_gains: float = Field(..., alias="capital-gains")
+    capital_loss: float = Field(..., alias="capital-loss")
+    incident_date: str
     incident_type: str
     collision_type: str
     incident_severity: str
     authorities_contacted: str
     incident_state: str
     incident_city: str
+    incident_location: str
     incident_hour_of_the_day: float
     number_of_vehicles_involved: float
     property_damage: str
@@ -57,11 +81,15 @@ class ClaimData(BaseModel):
     auto_model: str
     auto_year: float
 
+    class Config:
+        allow_population_by_field_name = True
+
+
 
 @app.get("/")
 def home():
     """Root endpoint to verify the API is running."""
-    return {"message": "Insurance Claim Prediction API is running"}
+    return {"message": "Insurance Claim Prediction API is running "}
 
 
 @app.post("/predict")
@@ -74,8 +102,11 @@ def predict(data: ClaimData):
         # Convert input JSON to DataFrame
         input_df = pd.DataFrame([data.dict()])
 
+        # Preprocess incoming data using saved encoder/scaler
+        processed_df = preprocess_for_inference(input_df)
+
         # Make prediction
-        prediction = model.predict(input_df)
+        prediction = model.predict(processed_df)
         prediction_label = int(prediction[0])
 
         return {

@@ -14,3 +14,9 @@ MODEL_PATH = os.path.join(BASE_DIR, "models", "xgb_model.pkl")
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
 TARGET_COL = "fraud_reported"
+
+
+# Preprocessing artifact paths
+ENCODER_PATH = os.path.join(os.path.dirname(MODEL_PATH), "encoder.joblib")
+SCALER_PATH = os.path.join(os.path.dirname(MODEL_PATH), "scaler.joblib")
+LABEL_ENCODER_PATH = os.path.join(os.path.dirname(MODEL_PATH), "label_encoder.joblib")
