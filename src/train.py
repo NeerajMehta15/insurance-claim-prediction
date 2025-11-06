@@ -2,8 +2,8 @@ import os
 import joblib
 import xgboost as xgb
 from sklearn.metrics import accuracy_score, classification_report
-from data_preprocessing import load_data, preprocess_data, split_data
-from config import TARGET_COL, MODEL_PATH
+from src.data_preprocessing import load_data, preprocess_data, split_data
+from src.config import TARGET_COL, MODEL_PATH
 
 def train_model():
     data = load_data()

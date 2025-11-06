@@ -80,37 +80,44 @@ def preprocess_data(data, target_column):
 
 
 def preprocess_for_inference(input_df):
-    """Preprocess new data for inference using saved encoder and scaler."""
-    # Load encoder and scaler
+    """
+    Preprocess a single inference sample to match training data.
+    """
+    import joblib
+    from config import ENCODER_PATH, SCALER_PATH
+
+    # --- STEP 1: Normalize column names ---
+    # Rename underscore to hyphen (because training data used hyphens)
+    rename_map = {
+        "capital_gains": "capital-gains",
+        "capital_loss": "capital-loss"
+    }
+    input_df.rename(columns=rename_map, inplace=True, errors="ignore")
+
+    # --- STEP 2: Drop any ghost columns (like _c39 or Unnamed) ---
+    input_df = input_df.loc[:, ~input_df.columns.str.contains('^Unnamed')]
+    input_df = input_df.loc[:, ~input_df.columns.str.contains('^_c')]
+
+    # --- STEP 3: Load preprocessing artifacts ---
     encoder = joblib.load(ENCODER_PATH)
     scaler = joblib.load(SCALER_PATH)
 
-    # Keep same categorical/numeric structure as training
-    categorical_cols = encoder.feature_names_in_.tolist()
-    numeric_cols = [col for col in input_df.columns if col not in categorical_cols]
+    # --- STEP 4: Identify categorical columns that were encoded ---
+    categorical_cols = encoder.feature_names_in_
 
-    # Handle missing columns — add missing ones with default values
-    for col in categorical_cols + numeric_cols:
-        if col not in input_df.columns:
-            input_df[col] = "Unknown" if col in categorical_cols else 0
+    # Encode categorical features
+    encoded_array = encoder.transform(input_df[categorical_cols])
+    encoded_df = pd.DataFrame(encoded_array, columns=encoder.get_feature_names_out(categorical_cols))
 
-    # Ensure same column order as training
-    input_df = input_df[categorical_cols + numeric_cols]
-
-    # Encode categorical variables
-    encoded_data = encoder.transform(input_df[categorical_cols])
-    X_encoded = pd.DataFrame(
-        encoded_data,
-        columns=encoder.get_feature_names_out(categorical_cols)
+    # Combine numeric + encoded
+    X = pd.concat(
+        [input_df.drop(columns=categorical_cols).reset_index(drop=True),
+         encoded_df.reset_index(drop=True)],
+        axis=1
     )
-    X_encoded.reset_index(drop=True, inplace=True)
 
-    # Combine numeric columns
-    X_numeric = input_df[numeric_cols].reset_index(drop=True)
-    X_combined = pd.concat([X_numeric, X_encoded], axis=1)
-
-    # Scale
-    X_scaled = pd.DataFrame(scaler.transform(X_combined), columns=X_combined.columns)
+    # --- STEP 5: Apply scaling ---
+    X_scaled = pd.DataFrame(scaler.transform(X), columns=X.columns)
 
     return X_scaled
 
@@ -132,7 +139,7 @@ def save_preprocessed_data(X_train, X_test, y_train, y_test, prefix='preprocesse
 
 
 if __name__ == "__main__":
-    print("🧪 Running data preprocessing standalone...")
+    print("Running data preprocessing standalone...")
     data = load_data()
     if data is not None:
         try:

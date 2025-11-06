@@ -1,12 +1,17 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import joblib
-import pandas as pd
 import os
 import sys
-from src.data_preprocessing import preprocess_for_inference 
 
-import sys, os
+# Add project root to Python path BEFORE local imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+import joblib
+import pandas as pd
+from src.data_preprocessing import preprocess_for_inference
+
+
+
 
 # Add both project root and src folder to sys.path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -37,8 +42,6 @@ except Exception as e:
     model = None
     print(f"Error loading model: {e}")
 
-
-# Define input data schema (full dataset features)
 from pydantic import BaseModel, Field
 
 class ClaimData(BaseModel):
@@ -57,8 +60,11 @@ class ClaimData(BaseModel):
     insured_occupation: str
     insured_hobbies: str
     insured_relationship: str
+
+    # ✅ Allow both formats: capital_gains and capital-gains
     capital_gains: float = Field(..., alias="capital-gains")
     capital_loss: float = Field(..., alias="capital-loss")
+
     incident_date: str
     incident_type: str
     collision_type: str
@@ -82,7 +88,10 @@ class ClaimData(BaseModel):
     auto_year: float
 
     class Config:
+        # ✅ This allows using either alias (capital-gains) or field name (capital_gains)
         allow_population_by_field_name = True
+        populate_by_name = True
+
 
 
 
